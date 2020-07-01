@@ -51,7 +51,7 @@
   EOFetchSpecification *fs;
   unichar  *us, *pos;
   unsigned len, remainingLen;
-  
+
   if ((len = [_sql length]) == 0) return nil;
 
   us  = calloc(len + 10, sizeof(unichar));
@@ -59,12 +59,12 @@
   us[len] = 0;
   pos = us;
   remainingLen = len;
-  
+
   if (![self parseSQL:&fs from:&pos length:&remainingLen strict:NO])
     [self logWithFormat:@"parsing of SQL failed."];
-  
+
   free(us);
-  
+
   return [fs autorelease];
 }
 
@@ -74,12 +74,12 @@
   unsigned i, len;
   BOOL     didReplace;
   if ((len = [_sql length]) == 0) return nil;
-  
+
   // TODO: improve, real parsing in qualifier parser !
-  
+
   buf = calloc(len + 3, sizeof(unichar));
   NSAssert(buf, @"could not allocate char buffer");
-  
+
   [_sql getCharacters:buf];
   for (i = 0, didReplace = NO; i < len; i++) {
     if (buf[i] != '%') {
@@ -89,20 +89,20 @@
       }
       continue;
     }
-    buf[i] = '%';    
+    buf[i] = '%';
     didReplace = YES;
   }
   if (didReplace)
     _sql = [NSString stringWithCharacters:buf length:len];
   if (buf) free(buf);
-  
+
   return [EOQualifier qualifierWithQualifierFormat:_sql];
 }
 
 /* parsing parts (exported for overloading in subclasses) */
 
 static inline BOOL
-uniIsCEq(unichar *haystack, const unsigned char *needle, unsigned len) 
+uniIsCEq(unichar *haystack, const unsigned char *needle, unsigned len)
 {
   register unsigned idx;
   for (idx = 0; idx < len; idx++) {
@@ -144,11 +144,11 @@ static inline BOOL isTokStopChar(unichar c) {
   /* ...[space] (strlen(tk)+1 chars) */
   unichar  *scur;
   unsigned slen, tlen;
-  
+
   tlen = strlen((const char *)tk);
   scur=*pos; slen=*len; // begin transaction
   skipSpaces(&scur, &slen);
-  
+
   if (slen < tlen)
     return NO;
   if (toupper(scur[0]) != tk[0])
@@ -157,11 +157,11 @@ static inline BOOL isTokStopChar(unichar c) {
     if (!isTokStopChar(scur[tlen]))
       return NO; /* not followed by a token stopper */
   }
-  if (!uniIsCEq(scur, tk, tlen)) 
+  if (!uniIsCEq(scur, tk, tlen))
     return NO;
-  
+
   scur+=tlen; slen-=tlen;
-  
+
   if (consume) { *pos = scur; *len = slen; } // end tx
   return YES;
 }
@@ -173,15 +173,15 @@ static inline BOOL isTokStopChar(unichar c) {
   /* "attr" or attr (at least 1 char or 2 for ") */
   unichar  *scur;
   unsigned slen;
-  
+
   if (result) *result = nil;
   scur=*pos; slen=*len; // begin transaction
   skipSpaces(&scur, &slen);
-  
+
   if (*scur == '"') {
     /* quoted attr */
     unichar *start;
-    
+
     //printf("try quoted attr\n");
     if (slen < 2) return NO;
     scur++; slen--; /* skip quote */
@@ -194,7 +194,7 @@ static inline BOOL isTokStopChar(unichar c) {
       return YES;
     }
     if (slen < 2) return NO;
-    
+
     start = scur;
     while ((slen > 0) && (*scur != '"')) {
       if (*scur == '\\' && (slen > 1)) {
@@ -204,31 +204,31 @@ static inline BOOL isTokStopChar(unichar c) {
       scur++; slen--;
     }
     if (slen > 0) { scur++; slen--; } /* skip quote */
-    
+
     // TODO: xhandle contained quoted chars ?
-    *result = 
+    *result =
       [[NSString alloc] initWithCharacters:start length:(scur-start-1)];
     //NSLog(@"found qattr: %@", *result);
   }
   else {
     /* non-quoted attr */
     unichar *start;
-    
+
     if (slen < 1) return NO;
-    
-    if ([self parseToken:(const unsigned char *)"FROM" 
+
+    if ([self parseToken:(const unsigned char *)"FROM"
 	      from:&scur length:&slen consume:NO]) {
       /* not an attribute, the from starts ... */
       // printf("rejected unquoted attr, is a FROM\n");
       return NO;
     }
-    if ([self parseToken:(const unsigned char *)"WHERE" 
+    if ([self parseToken:(const unsigned char *)"WHERE"
 	      from:&scur length:&slen consume:NO]) {
       /* not an attribute, the where starts ... */
       // printf("rejected unquoted attr, is a WHERE\n");
       return NO;
     }
-    
+
     start = scur;
     while ((slen > 0) && !isspace(*scur) && (*scur != ',')) {
       slen--;
@@ -263,14 +263,14 @@ static inline BOOL isTokStopChar(unichar c) {
   unsigned slen;
   id       attr;
   BOOL (*parser)(id, SEL, NSString **, unichar **, unsigned *, BOOL);
-  
+
   if (result) *result = nil;
   scur=*pos; slen=*len; // begin transaction
   skipSpaces(&scur, &slen);
   parser = (void *)[self methodForSelector:_sel];
-  
+
   if (slen < 1) return NO; // not enough chars
-  
+
   if (*scur == '*') {
     /* a wildcard list, return 'nil' as result */
     //printf("try wildcard\n");
@@ -283,14 +283,14 @@ static inline BOOL isTokStopChar(unichar c) {
     *result = nil;
     return YES;
   }
-  
+
   if (!parser(self, _sel, &attr,&scur,&slen,YES))
     /* well, we need at least one attribute to make it a list */
     return NO;
-  
+
   attrs = [[NSMutableArray alloc] initWithCapacity:32];
   [attrs addObject:attr]; [attr release];
-  
+
   /* all the remaining attributes must be prefixed with a "," */
   while (slen > 1) {
     //printf("try next list attr comma\n");
@@ -298,14 +298,14 @@ static inline BOOL isTokStopChar(unichar c) {
     if (slen < 2) break;
     if (*scur != ',') break;
     scur++; slen--; // skip ','
-    
+
     //printf("try next list attr\n");
     if (!parser(self, _sel, &attr,&scur,&slen,YES))
       break;
-    
+
     [attrs addObject:attr]; [attr release];
   }
-  
+
   *pos = scur; *len = slen; // end transaction
   *result = attrs;
   return YES;
@@ -316,27 +316,27 @@ static inline BOOL isTokStopChar(unichar c) {
 {
   /* contains('"hh@"') [12+ chars] */
   unichar  *scur;
-  unsigned slen;
+  unsigned slen = *len;
   NSString *s;
   if (q_) *q_ = nil;
   skipSpaces(&scur, &slen);
-  
+
   if (slen < 12) return NO; // not enough chars
-  
-  if (![self parseToken:(const unsigned char *)"CONTAINS" 
+
+  if (![self parseToken:(const unsigned char *)"CONTAINS"
 	     from:pos length:len consume:YES])
     return NO;
   skipSpaces(&scur, &slen);
-  [self parseToken:(const unsigned char *)"('" 
+  [self parseToken:(const unsigned char *)"('"
 	from:&scur length:&slen consume:YES];
-  
+
   if (![self parseIdentifier:&s from:&scur length:&slen consume:YES])
     return NO;
-  
+
   skipSpaces(&scur, &slen);
-  [self parseToken:(const unsigned char *)"')" 
+  [self parseToken:(const unsigned char *)"')"
 	from:&scur length:&slen consume:YES];
-  
+
   *q_ = [[EOQualifier qualifierWithQualifierFormat:
 			@"contentAsString doesContain: %@", s] retain];
   if (*q_) {
@@ -352,40 +352,40 @@ static inline BOOL isTokStopChar(unichar c) {
 {
   unichar  *scur;
   unsigned slen;
-  
+
   if (result) *result = nil;
   scur=*pos; slen=*len; // begin transaction
   skipSpaces(&scur, &slen);
-  
+
   if (slen < 3) return NO; // not enough chars
-  
+
   // for now should scan till we find either ORDER BY order GROUP BY
   {
     unichar *start = scur;
-    
+
     while (slen > 0) {
       if (*scur == 'O' || *scur == 'o') {
-	if ([self parseToken:(const unsigned char *)"ORDER" 
+	if ([self parseToken:(const unsigned char *)"ORDER"
 		  from:&scur length:&slen consume:NO]) {
 	  //printf("FOUND ORDER TOKEN ...\n");
 	  break;
 	}
       }
       else if (*scur == 'G' || *scur == 'g') {
-	if ([self parseToken:(const unsigned char *)"GROUP" 
+	if ([self parseToken:(const unsigned char *)"GROUP"
 		  from:&scur length:&slen consume:NO]) {
 	  //printf("FOUND GROUP TOKEN ...\n");
 	  break;
 	}
       }
-      
+
       scur++; slen--;
     }
 
     {
       EOQualifier *q;
       NSString *s;
-      
+
       s = [[NSString alloc] initWithCharacters:start length:(scur-start)];
       if ([s length] == 0) {
 	[s release];
@@ -399,7 +399,7 @@ static inline BOOL isTokStopChar(unichar c) {
       [s release];
     }
   }
-  
+
   *pos = scur; *len = slen; // end transaction
   return YES;
 }
@@ -407,7 +407,7 @@ static inline BOOL isTokStopChar(unichar c) {
 - (BOOL)parseScope:(NSString **)_scope :(NSString **)_entity
   from:(unichar **)pos length:(unsigned *)len
 {
-  /* 
+  /*
     "('shallow traversal of "..."')"
     "('hierarchical traversal of "..."')"
   */
@@ -416,44 +416,44 @@ static inline BOOL isTokStopChar(unichar c) {
   NSString *entityName;
   BOOL isShallow = NO;
   // BOOL isDeep    = NO;
-  
+
   if (_scope)  *_scope  = nil;
   if (_entity) *_entity = nil;
   scur=*pos; slen=*len; // begin transaction
   skipSpaces(&scur, &slen);
   if (slen < 14) return NO; // not enough chars
-  
+
   if (*scur != '(') return NO; // does not start with '('
   scur++; slen--; // skip '('
   skipSpaces(&scur, &slen);
-  
+
   if (*scur != '\'') return NO; // does not start with '(''
   scur++; slen--; // skip single quote
-  
+
   /* next the depth */
-  
-  if ([self parseToken:(const unsigned char *)"SHALLOW" 
+
+  if ([self parseToken:(const unsigned char *)"SHALLOW"
 	    from:&scur length:&slen consume:YES])
     isShallow = YES;
-  else if ([self parseToken:(const unsigned char *)"HIERARCHICAL" 
+  else if ([self parseToken:(const unsigned char *)"HIERARCHICAL"
 		 from:&scur length:&slen consume:YES])
     ;
     // isDeep = YES;
-  else if ([self parseToken:(const unsigned char *)"DEEP" 
+  else if ([self parseToken:(const unsigned char *)"DEEP"
 		 from:&scur length:&slen consume:YES])
     ;
     // isDeep = YES;
   else
     /* unknown traveral key */
     return NO;
-  
+
   /* some syntactic sugar (not strict about that ...) */
-  [self parseToken:(const unsigned char *)"TRAVERSAL" 
+  [self parseToken:(const unsigned char *)"TRAVERSAL"
 	from:&scur length:&slen consume:YES];
-  [self parseToken:(const unsigned char *)"OF"        
+  [self parseToken:(const unsigned char *)"OF"
 	from:&scur length:&slen consume:YES];
   if (slen < 1) return NO; // not enough chars
-  
+
   /* now the entity */
   skipSpaces(&scur, &slen);
   if (![self parseTableName:&entityName from:&scur length:&slen consume:YES])
@@ -468,7 +468,7 @@ static inline BOOL isTokStopChar(unichar c) {
   if (slen > 0 && *scur == ')') {
     scur++; slen--; // skip ')'
   }
-  
+
   if (_scope)  *_scope  = isShallow ? @"flat" : @"deep";
   if (_entity) *_entity = entityName;
   *pos = scur; *len = slen; // end transaction
@@ -490,37 +490,37 @@ static inline BOOL isTokStopChar(unichar c) {
   BOOL hasSelect = NO;
   BOOL hasFrom   = NO;
   BOOL missingByOfOrder = NO;
-  
+
   *result = nil;
-  
-  if (![self parseToken:(const unsigned char *)"SELECT" 
+
+  if (![self parseToken:(const unsigned char *)"SELECT"
 	     from:pos length:len consume:YES]) {
     /* must begin with SELECT */
     if (beStrict) return NO;
   }
   else
     hasSelect = YES;
-  
+
   if (![self parseIdentifierList:&attrs from:pos length:len
 	     selector:@selector(parseColumnName:from:length:consume:)]) {
     [self logWithFormat:@"missing ID list .."];
     return NO;
   }
   //[self debugWithFormat:@"parsed attrs (%i): %@", [attrs count], attrs];
-  
+
   /* now a from is expected */
-  if ([self parseToken:(const unsigned char *)"FROM" 
+  if ([self parseToken:(const unsigned char *)"FROM"
 	    from:pos length:len consume:YES])
     hasFrom = YES;
   else {
     if (beStrict) return NO;
   }
-  
+
   /* check whether it's followed by a scope */
-  if ([self parseToken:(const unsigned char *)"SCOPE" 
+  if ([self parseToken:(const unsigned char *)"SCOPE"
 	    from:pos length:len consume:YES]) {
     NSString *scopeEntity = nil;
-    
+
     if (![self parseScope:&scope:&scopeEntity from:pos length:len]) {
       if (beStrict) return NO;
     }
@@ -528,7 +528,7 @@ static inline BOOL isTokStopChar(unichar c) {
     else
       [self logWithFormat:@"FOUND SCOPE: '%@'", scope];
 #endif
-    
+
     if (scopeEntity)
       fromList = [[NSArray alloc] initWithObjects:scopeEntity, nil];
     [scopeEntity release];
@@ -544,13 +544,13 @@ static inline BOOL isTokStopChar(unichar c) {
 	  [fromList count], fromList];
 #endif
   }
-  
+
   /* check where */
-  if ([self parseToken:(const unsigned char *)"WHERE" 
+  if ([self parseToken:(const unsigned char *)"WHERE"
 	    from:pos length:len consume:YES]) {
     /* parse qualifier ... */
-    
-    if ([self parseToken:(const unsigned char *)"CONTAINS" 
+
+    if ([self parseToken:(const unsigned char *)"CONTAINS"
 	      from:pos length:len consume:NO]) {
       if (![self parseContainsQualifier:&q from:pos length:len]) {
 	if (beStrict) return NO;
@@ -563,36 +563,36 @@ static inline BOOL isTokStopChar(unichar c) {
     [self logWithFormat:@"FOUND Qualifier: '%@'", q];
 #endif
   }
-  
+
   /* check order-by */
-  if ([self parseToken:(const unsigned char *)"ORDER" 
+  if ([self parseToken:(const unsigned char *)"ORDER"
 	    from:pos length:len consume:YES]) {
-    if (![self parseToken:(const unsigned char *)"BY" 
+    if (![self parseToken:(const unsigned char *)"BY"
 	       from:pos length:len consume:YES]) {
       if (beStrict) return NO;
       missingByOfOrder = YES;
     }
-    
+
     if (![self parseIdentifierList:&orderList from:pos length:len
 	       selector:@selector(parseColumnName:from:length:consume:)])
       return NO;
 #if DEBUG_PARSING
-    [self logWithFormat:@"parsed ORDER list (%i): %@", 
+    [self logWithFormat:@"parsed ORDER list (%i): %@",
 	    [orderList count], orderList];
 #endif
   }
-  
+
   /* check group-by */
-  if ([self parseToken:(const unsigned char *)"GROUP" 
+  if ([self parseToken:(const unsigned char *)"GROUP"
 	    from:pos length:len consume:YES]) {
-    if (![self parseToken:(const unsigned char *)"BY" 
+    if (![self parseToken:(const unsigned char *)"BY"
 	       from:pos length:len consume:YES]) {
       if (beStrict) return NO;
     }
   }
-  
+
   //printUniStr(*pos, *len); // DEBUG
-  
+
   if (!hasSelect) [self logWithFormat:@"missing SELECT !"];
   if (!hasFrom)   [self logWithFormat:@"missing FROM !"];
   if (missingByOfOrder) [self logWithFormat:@"missing BY in ORDER BY !"];
@@ -600,7 +600,7 @@ static inline BOOL isTokStopChar(unichar c) {
   /* build fetchspec */
 
   lHints = [[NSMutableDictionary alloc] initWithCapacity:16];
-  
+
   if (scope) {
     [lHints setObject:scope forKey:@"scope"];
     [scope release]; scope = nil;
@@ -612,12 +612,12 @@ static inline BOOL isTokStopChar(unichar c) {
   if (orderList) {
     NSMutableArray *ma;
     unsigned len;
-    
+
     len = [orderList count];
     ma = [[NSMutableArray alloc] initWithCapacity:len];
     // for (i = 0; i < len; i++) {
     //   EOSortOrdering *so;
-      
+
     //   so = [EOSortOrdering sortOrderingWithKey:[orderList objectAtIndex:i]
     //     		   selector:EOCompareAscending];
     // }
@@ -625,7 +625,7 @@ static inline BOOL isTokStopChar(unichar c) {
     [ma release];
     [orderList release]; orderList = nil;
   }
-  
+
   fs = [[EOFetchSpecification alloc]
 	 initWithEntityName:[fromList componentsJoinedByString:@","]
 	 qualifier:q
@@ -634,7 +634,7 @@ static inline BOOL isTokStopChar(unichar c) {
   [lHints release];
   [q release];
   [fromList release];
-  
+
   *result = fs;
   return fs ? YES : NO;
 }
@@ -644,15 +644,15 @@ static inline BOOL isTokStopChar(unichar c) {
   strict:(BOOL)beStrict
 {
   if (*len < 1) return NO;
-  
-  if ([self parseToken:(const unsigned char *)"SELECT" 
+
+  if ([self parseToken:(const unsigned char *)"SELECT"
 	    from:pos length:len consume:NO])
     return [self parseSELECT:result from:pos length:len strict:beStrict];
-  
+
   //if ([self parseToken:"UPDATE" from:pos length:len consume:NO])
   //if ([self parseToken:"INSERT" from:pos length:len consume:NO])
   //if ([self parseToken:"DELETE" from:pos length:len consume:NO])
-  
+
   [self logWithFormat:@"tried to parse an unsupported SQL statement."];
   return NO;
 }
@@ -664,7 +664,7 @@ static inline BOOL isTokStopChar(unichar c) {
 + (void)testDAVQuery {
   EOFetchSpecification *fs;
   NSString *sql;
-  
+
   NSLog(@"testing: %@ --------------------", self);
 
   sql = @"\n"
@@ -693,7 +693,7 @@ static inline BOOL isTokStopChar(unichar c) {
   @"  \"http://schemas.microsoft.com/mapi/proptag/x0e230003\" > 0  \n"
   @"  \n";
   fs = [[self sharedSQLParser] parseSQLSelectStatement:sql];
-  
+
   NSLog(@"  FS: %@", fs);
   if (fs == nil) {
     NSLog(@"  ERROR: could not parse SQL: %@", sql);
@@ -702,17 +702,17 @@ static inline BOOL isTokStopChar(unichar c) {
     EOQualifier *q;
     NSString *scope;
     NSArray  *props;
-    
+
     if ((scope = [[fs hints] objectForKey:@"scope"]) == nil)
       NSLog(@"  INVALID: got no scope !");
     if (![scope isEqualToString:@"flat"])
       NSLog(@"  INVALID: got scope %@, expected flat !", scope);
 
-#if 0    
+#if 0
     if ([fs queryWebDAVPropertyNamesOnly])
       NSLog(@"  INVALID: name query only, but queried several attrs !");
 #endif
-    
+
     /* check qualifier */
     if ((q = [fs qualifier]) == nil)
       NSLog(@"  INVALID: got not qualifier (expected one) !");
@@ -730,7 +730,7 @@ static inline BOOL isTokStopChar(unichar c) {
       NSLog(@"  INVALID: got sort orderings, specified none: %@ !",
 	    [fs sortOrderings]);
     }
-    
+
     /* attributes */
     if ((props = [[fs hints] objectForKey:@"attributes"]) == nil)
       NSLog(@"  INVALID: got not attributes (expected some) !");
@@ -743,7 +743,7 @@ static inline BOOL isTokStopChar(unichar c) {
 	    [props count]);
     }
   }
-  
+
   NSLog(@"done test: %@ ------------------", self);
 }
 

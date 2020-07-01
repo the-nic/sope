@@ -81,7 +81,7 @@ static __inline__ char *weekdayName(int dow) {
     case 0: return "Sun"; case 1: return "Mon"; case 2: return "Tue";
     case 3: return "Wed"; case 4: return "Thu"; case 5: return "Fri";
     case 6: return "Sat"; case 7: return "Sun";
-    default: return "UNKNOWN DAY OF WEEK !";
+    default: return "Err";
   }
 }
 static __inline__ char *monthName(int m) {
@@ -90,7 +90,7 @@ static __inline__ char *monthName(int m) {
     case  4:  return "Apr"; case  5:  return "May"; case  6:  return "Jun";
     case  7:  return "Jul"; case  8:  return "Aug"; case  9:  return "Sep";
     case 10:  return "Oct"; case 11:  return "Nov"; case 12:  return "Dec";
-    default: return "UNKNOWN MONTH !";
+    default: return "Err";
   }
 }
 
@@ -100,12 +100,12 @@ static __inline__ char *monthName(int m) {
   */
   /* HTTP/1.1 caching directive, prevents browser from caching dynamic pages */
   static NSTimeZone *gmt = nil;
-  
+
   if (gmt == nil) gmt = [[NSTimeZone timeZoneWithAbbreviation:@"GMT"] retain];
 #if DEBUG && 0
   [self logWithFormat:@"disabled client caching: %@ ..", self];
 #endif
-  
+
   /*
     Set expire time to one hour before now to catch inconsitencies between
     client and server time. Not using -description of NSCalendarDate to
@@ -115,10 +115,10 @@ static __inline__ char *monthName(int m) {
     NSCalendarDate *now;
     NSString *s;
     char buf[32];
-    
+
     now = [[NSCalendarDate alloc] initWithTimeIntervalSinceNow:-3600.0];
     [now setTimeZone:gmt];
-    
+
     sprintf(buf,
 #if GS_64BIT_OLD
             "%s, %02i %s %04i %02i:%02i:%02i GMT",
@@ -126,12 +126,12 @@ static __inline__ char *monthName(int m) {
             "%s, %02li %s %04li %02li:%02li:%02li GMT",
 #endif
             weekdayName([now dayOfWeek]),
-            [now dayOfMonth], 
+            [now dayOfMonth],
             monthName([now monthOfYear]),
             [now yearOfCommonEra],
             [now hourOfDay], [now minuteOfHour], [now secondOfMinute]);
     [now release];
-    
+
     s = [[NSString alloc] initWithCString:buf];
     [self setHeader:s forKey:@"expires"];
     [s release];
@@ -144,10 +144,10 @@ static __inline__ char *monthName(int m) {
 
 - (NSString *)contentString {
   NSString *s;
-  
+
   if (NSStringClass == Nil)
     NSStringClass = [NSString class];
-  
+
   s = [[NSStringClass alloc] initWithData:[self content]
                              encoding:[self contentEncoding]];
   return [s autorelease];
@@ -165,13 +165,13 @@ static __inline__ char *monthName(int m) {
   NSString *contentType;
   NSString *acceptEncoding;
   id       body;
-  
+
   if (dontZip) {
     if (debugZip) [self logWithFormat:@"Zipping of response disabled"];
     return NO;
   }
-  
-  if ((body = [self content]) == nil)  
+
+  if ((body = [self content]) == nil)
     return NO;
   if (![body isKindOfClass:[NSData class]])
     return NO;
@@ -183,9 +183,9 @@ static __inline__ char *monthName(int m) {
     }
     return NO;
   }
-  
+
   contentType = [self headerForKey:@"content-type"];
-  
+
   if ([self headerForKey:@"content-encoding"] != nil) {
     /* already applied some content-encoding */
     if (debugZip)
@@ -204,10 +204,10 @@ static __inline__ char *monthName(int m) {
       [self logWithFormat:@"Do not zip, is an image."];
     return NO;
   }
-  
+
   if (_rq == nil)
     return YES;
-  
+
   acceptEncoding = [[_rq headerForKey:@"accept-encoding"] stringValue];
   if (acceptEncoding == nil) {
     if (debugZip) {
@@ -234,19 +234,19 @@ static __inline__ char *monthName(int m) {
   NSData *zipped = nil;
   int    len;
   id     body;
-  
+
   if ((body = [self content]) == nil) return nil;
-  
+
   len = [body length];
 
   /* zip body data */
-  
+
   if ((zipped = [body gzipWithLevel:OWDefaultZipLevel]) == nil) {
     if (debugZip)
       [self logWithFormat:@"gzip refused to zip body ..."];
     return body;
   }
-  
+
   /* check if it's smaller */
   if ((int)[zipped length] >= len) {
     if (debugZip) {
@@ -256,9 +256,9 @@ static __inline__ char *monthName(int m) {
     }
     return body; /* it's not */
   }
-  
+
   /* it is smaller .. */
-      
+
   if (debugZip) {
     [self logWithFormat:
 	    @"zipped content %i => %i bytes (gain: %-.2g%%).",
@@ -266,25 +266,25 @@ static __inline__ char *monthName(int m) {
             (double)(100.0 - (((double)[zipped length]) /
                               (((double)len) / 100.0)))];
   }
-  
+
   body = zipped;
   [self setHeader:@"gzip" forKey:@"content-encoding"];
 
   /* statistics */
-  
+
   if ((ui = [[self userInfo] mutableCopy]) == nil)
     ui = [[NSMutableDictionary alloc] initWithCapacity:2];
-  
+
   [ui setObject:zipped forKey:@"WOZippedContent"];
   zlen = [NSNumber numberWithUnsignedInt:len];
   [ui setObject:zlen   forKey:@"WOResponseUnzippedLength"];
   zlen = [NSNumber numberWithUnsignedInt:[zipped length]];
   [ui setObject:zlen   forKey:@"WOResponseZippedLength"];
-  
+
   [self setUserInfo:ui];
   [ui release]; ui = nil;
   [self setContent:zipped];
-  
+
   return zipped;
 }
 
@@ -293,11 +293,11 @@ static __inline__ char *monthName(int m) {
 - (NSString *)description {
   NSMutableString *ms;
   NSData *data;
-  
+
   ms = [NSMutableString stringWithCapacity:64];
   [ms appendFormat:@"<0x%p[%@]:", self,
         NSStringFromClass((Class)*(void**)self)];
-  
+
   [ms appendFormat:@" status=%i",  [self status]];
   [ms appendFormat:@" headers=%@", [self headers]];
 
@@ -309,7 +309,7 @@ static __inline__ char *monthName(int m) {
   }
   else
     [ms appendString:@" no-content"];
-  
+
   [ms appendString:@">"];
   return ms;
 }

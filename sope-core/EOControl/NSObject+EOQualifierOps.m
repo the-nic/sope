@@ -60,7 +60,7 @@ static EONull *null = nil;
 - (BOOL)isLike:(NSString *)_object {
   return NO;
 }
-- (BOOL)isCaseInsensitiveLike:(NSString *)_object {
+- (BOOL)isCaseInsensitiveLike:(id)_object {
   return NO;
 }
 
@@ -79,28 +79,28 @@ static EONull *null = nil;
 - (BOOL)isLike:(NSString *)_pattern {
   NSArray  *cs;
   unsigned count;
-#if 0  
+#if 0
   NSString *first, *last;
-#endif  
-  
+#endif
+
   if (null == nil) null = [[EONull null] retain];
 
   if ((id)_pattern == (id)null)
     return NO;
-  
+
   if ([_pattern isEqual:@"*"])
     /* all match */
     return YES;
-  
+
   cs    = [_pattern componentsSeparatedByString:@"*"];
   count = [cs count];
 
   if (count == 0)
     return [self isEqual:_pattern];
-  
+
   if (count == 1)
     return [self isEqual:_pattern];
-  
+
   if (count == 2) {
     if ([_pattern hasPrefix:@"*"])
       return [self hasSuffix:[cs objectAtIndex:1]];
@@ -122,18 +122,18 @@ static EONull *null = nil;
     idx        = 0;
     len        = [self length];
     enumerator = [cs objectEnumerator];
-    
+
     while ((str = [enumerator nextObject]) && idx < len) {
       NSRange r;
-      
+
       if ([str length] == 0)
         continue;
-      
+
       r = NSMakeRange(idx, ([self length] - idx));
       r = [self rangeOfString:str options:0 range:r];
       if (r.length == 0)
         return NO;
-      
+
       idx += r.length;
     }
     return [enumerator nextObject] ? NO : YES;
@@ -148,7 +148,7 @@ static EONull *null = nil;
     return NO;
 
   /* to be completed (match interior stuff, match '?') */
-  
+
   return YES;
 #endif
   return NO;

@@ -205,7 +205,7 @@ DEALINGS IN THE SOFTWARE.
   [self disableNagle: YES];
 
   ret = gnutls_init((gnutls_session_t *) &self->session, GNUTLS_CLIENT);
-  if (ret) {
+  if (ret != GNUTLS_E_SUCCESS) {
     // should set exception !
     NSLog(@"ERROR(%s): couldn't create GnuTLS session (%s)",
           __PRETTY_FUNCTION__, gnutls_strerror(ret));

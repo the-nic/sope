@@ -36,17 +36,17 @@
   NSArray  *a;
   unsigned count, i;
   BOOL     foundDefault;
-  
+
   a = [self arguments];
   if ((count = [a count]) == 0) return nil;
   if (count == 1) return a;
-  
+
   ma = [NSMutableArray arrayWithCapacity:count];
   [ma addObject:[a objectAtIndex:0]]; // tool name
-  
+
   for (i = 1, foundDefault = NO; i < count; i++) {
     NSString *arg;
-    
+
     arg = [a objectAtIndex:i];
     if ([arg hasPrefix:@"-"] && ([arg length] > 1)) {
       /* a default .. */
@@ -54,10 +54,10 @@
       foundDefault = YES;
       continue;
     }
-    
+
     [ma addObject:arg];
   }
-  
+
   return foundDefault ? (NSArray *)ma : a;
 }
 
@@ -74,7 +74,7 @@
 }
 - (NSString *)temporaryFileName {
   NSString *prefix;
-  
+
   prefix = [@"/tmp/" stringByAppendingPathComponent:[self processName]];
   return [self temporaryFileName:prefix];
 }
@@ -85,7 +85,7 @@
   int pid;
 #if defined(__MINGW32__)
   pid = (int)GetCurrentProcessId();
-#else                     
+#else
   pid = (int)getpid();
 #endif
   return [NSNumber numberWithInt:pid];
@@ -94,11 +94,11 @@
 - (NSString *)procDirectoryPathForProcess {
   NSString *p;
   BOOL isDir;
-  
+
   p = [@"/proc/" stringByAppendingString:[[self processId] stringValue]];
   if (![[NSFileManager defaultManager] fileExistsAtPath:p isDirectory:&isDir])
     return nil;
-  
+
   return isDir ? p : (NSString *)nil;
 }
 
@@ -108,35 +108,35 @@
   NSString     *s;
   NSEnumerator *lines;
   NSString     *line;
-  
+
   procStatusPath =
     [[self procDirectoryPathForProcess]
            stringByAppendingPathComponent:@"status"];
-  
+
   s = [[NSString alloc] initWithContentsOfFile:procStatusPath];
   if (s == nil) return nil;
-  
+
   dict = [NSMutableDictionary dictionaryWithCapacity:32];
-  
+
   lines = [[s componentsSeparatedByString:@"\n"] objectEnumerator];
   while ((line = [lines nextObject])) {
     NSString *key;
     NSRange  r;
     id value;
-    
+
     r = [line rangeOfString:@":"];
     if (r.length == 0) continue;
-    
+
     key   = [line substringToIndex:r.location];
-    value = [[line substringFromIndex:(r.location + r.length)] 
+    value = [[line substringFromIndex:(r.location + r.length)]
 	           stringByTrimmingSpaces];
-    
+
     if (value == nil)
       value = [NSNull null];
-    
+
     [dict setObject:value forKey:key];
   }
-  
+
   return [[dict copy] autorelease];
 }
 
@@ -154,7 +154,8 @@ static NSNumber *_uint(unsigned int i) {
     FILE          *fh;\
     char          pp[256];\
     int           res;\
-    int           pid, ppid, pgrp, session, tty, tpgid;\
+    pid_t         pid;\
+    int           ppid, pgrp, session, tty, tpgid;\
     unsigned int  flags, minflt, cminflt, majflt, cmajflt;\
     int           utime, stime, cutime, cstime, counter;\
     unsigned char comm[256];\
@@ -165,6 +166,7 @@ static NSNumber *_uint(unsigned int i) {
     int           signal, blocked, sigignore, sigcatch;\
     unsigned int  wchan;\
     \
+    (void)res;\
     pid = getpid();\
     snprintf(pp, 255, "/proc/%i/stat", pid);\
     fh = fopen(pp, "r");\
@@ -224,10 +226,10 @@ static NSNumber *_uint(unsigned int i) {
   /* see 'man 5 proc' */
   NSMutableDictionary *dict;
   NG_GET_PROC_INFO;
-  
+
   if (res > 0) {
     dict = [NSMutableDictionary dictionaryWithCapacity:res];
-    
+
     if (res >  0) [dict setObject:_int(pid)          forKey:@"pid"];
     if (res >  1) [dict setObject:[NSString stringWithCString:(char *)comm]
                         forKey:@"comm"];
@@ -265,14 +267,14 @@ static NSNumber *_uint(unsigned int i) {
     if (res > 32) [dict setObject:_int(sigignore)    forKey:@"sigignore"];
     if (res > 33) [dict setObject:_int(sigcatch)     forKey:@"sigcatch"];
     if (res > 34) [dict setObject:_uint(wchan)       forKey:@"wchan"];
-    
+
     return dict;
   }
   else {
     NSLog(@"%s: couldn't scan /proc-info ...", __PRETTY_FUNCTION__);
     dict = nil;
   }
-  
+
   return [[dict copy] autorelease];
 #else
   return nil;

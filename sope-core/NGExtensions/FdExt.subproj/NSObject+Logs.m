@@ -76,7 +76,7 @@ static inline Class NSStringClass(void) {
 #if DEBUG
   NGLogger *logger;
   NSString *msg, *msg2;
-  
+
   /* This does some fancy formatting and calls [NGLogger logLevel:message:]
    * thereby bypassing the logLevel check normally done in the logger.
    * So we must do it here
@@ -85,7 +85,7 @@ static inline Class NSStringClass(void) {
   logger = [self debugLogger];
   if ((![self isDebuggingEnabled]) || ([logger logLevel] < NGLogLevelDebug))
     return;
-  
+
   msg  = [[NSStringClass() alloc] initWithFormat:_fmt arguments:_va];
   msg2 = [[NSStringClass() alloc] initWithFormat:
 				    @"<%@>D %@", [self loggingPrefix], msg];
@@ -93,17 +93,17 @@ static inline Class NSStringClass(void) {
   [msg2 release];
   [msg  release];
 #else
-#  warning debug is disabled, debugWithFormat wont print anything ..
+//#  warning debug is disabled, debugWithFormat wont print anything ..
 #endif
 }
 
 - (void)logWithFormat:(NSString *)_fmt arguments:(va_list)_va {
   NGLogger *logger;
   NSString *msg;
-  
+
   logger = [self logger];
   if (![logger isLogInfoEnabled]) return;
-  
+
   msg = [[NSStringClass() alloc] initWithFormat:_fmt arguments:_va];
   [logger logWithFormat:@"%@ %@", [self loggingPrefix], msg];
   [msg release];
@@ -124,7 +124,7 @@ static inline Class NSStringClass(void) {
 - (void)errorWithFormat:(NSString *)_fmt arguments:(va_list)_va {
   NGLogger *logger;
   NSString *msg;
-  
+
   logger = [self logger];
   if (![logger isLogErrorEnabled]) return;
 
@@ -136,7 +136,7 @@ static inline Class NSStringClass(void) {
 - (void)fatalWithFormat:(NSString *)_fmt arguments:(va_list)_va {
   NGLogger *logger;
   NSString *msg;
-  
+
   logger = [self logger];
   if (![logger isLogFatalEnabled]) return;
 
@@ -147,35 +147,35 @@ static inline Class NSStringClass(void) {
 
 - (void)debugWithFormat:(NSString *)_fmt, ... {
   va_list ap;
-  
+
   va_start(ap, _fmt);
   [self debugWithFormat:_fmt arguments:ap];
   va_end(ap);
 }
 - (void)logWithFormat:(NSString *)_fmt, ... {
   va_list ap;
-  
+
   va_start(ap, _fmt);
   [self logWithFormat:_fmt arguments:ap];
   va_end(ap);
 }
 - (void)warnWithFormat:(NSString *)_fmt, ... {
   va_list ap;
-  
+
   va_start(ap, _fmt);
   [self warnWithFormat:_fmt arguments:ap];
   va_end(ap);
 }
 - (void)errorWithFormat:(NSString *)_fmt, ... {
   va_list ap;
-  
+
   va_start(ap, _fmt);
   [self errorWithFormat:_fmt arguments:ap];
   va_end(ap);
 }
 - (void)fatalWithFormat:(NSString *)_fmt, ... {
   va_list ap;
-  
+
   va_start(ap, _fmt);
   [self fatalWithFormat:_fmt arguments:ap];
   va_end(ap);

@@ -1,4 +1,4 @@
-/* 
+/*
    EOEntity.m
 
    Copyright (C) 1996 Free Software Foundation, Inc.
@@ -8,7 +8,7 @@
 
    Author: Helge Hess <helge.hess@mdlink.de>
    Date: November 1999
-   
+
    This file is part of the GNUstep Database Library.
 
    This library is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@
 #import <EOControl/EOKeyValueCoding.h>
 #import <EOControl/EOKeyGlobalID.h>
 
-static int _compareByName(id obj1, id obj2, void * context);
+static NSComparisonResult _compareByName(id obj1, id obj2, void * context);
 
 @interface NSObject(MappedArrayProtocol)
 - (NSArray *)mappedArrayUsingSelector:(SEL)_selector;
@@ -126,10 +126,10 @@ static int _compareByName(id obj1, id obj2, void * context);
   unsigned   len = [attributeName cStringLength];
   char       buf[len + 1];
   const char *s;
-  
+
   s = buf;
   [attributeName getCString:buf];
-  
+
   if(!isalnum((int)*s) && *s != '@' && *s != '_' && *s != '#')
     return NO;
 
@@ -266,16 +266,16 @@ static int _compareByName(id obj1, id obj2, void * context);
   self->primaryKeyAttributeNames = [NSMutableArray arrayWithCapacity:count];
   for(i = 0; i < count; i++) {
     id key = [keys objectAtIndex:i];
-    
+
     [(NSMutableArray*)self->primaryKeyAttributeNames
                       addObject:[(EOAttribute*)key name]];
   }
   self->primaryKeyAttributeNames
     = RETAIN([self->primaryKeyAttributeNames
                   sortedArrayUsingSelector:@selector(compare:)]);
-    
+
   [self invalidatePropertiesCache];
-    
+
   return YES;
 }
 
@@ -303,7 +303,7 @@ static int _compareByName(id obj1, id obj2, void * context);
   array = [self attributesUsedForLocking];
   n     = [array count];
   dict  = [NSMutableDictionary dictionaryWithCapacity:n];
-  
+
   for (i = 0; i < n; i++) {
     EOAttribute *attribute;
     NSString *attributeName;
@@ -321,7 +321,7 @@ static int _compareByName(id obj1, id obj2, void * context);
     NSAssert3(value, @"missing value for column '%@' (attr '%@') in row %@",
               columnName, attribute, aRow);
 #endif
-    
+
     [dict setObject:value forKey:attributeName];
   }
   return dict;
@@ -380,7 +380,7 @@ static int _compareByName(id obj1, id obj2, void * context);
   }
   self->classPropertyNames = [self->classPropertyNames copyWithZone:[self zone]];
   [self invalidatePropertiesCache];
-    
+
   return YES;
 }
 
@@ -399,7 +399,7 @@ static int _compareByName(id obj1, id obj2, void * context);
   return NO;
 }
 
-- (NSArray *)relationshipsNamed:(NSString *)_relationshipPath {    
+- (NSArray *)relationshipsNamed:(NSString *)_relationshipPath {
   if([_relationshipPath isNameOfARelationshipPath]) {
     NSMutableArray *myRelationships = [[NSMutableArray alloc] init];
     NSArray  *defArray = [_relationshipPath componentsSeparatedByString:@"."];
@@ -439,7 +439,7 @@ static int _compareByName(id obj1, id obj2, void * context);
       property = [currentEntity propertyNamed:propertyName];
       if(!property)
         return nil;
-            
+
       currentEntity = [property destinationEntity];
     }
     propertyName = [defArray lastObject];
@@ -478,7 +478,7 @@ static int _compareByName(id obj1, id obj2, void * context);
   else
     self->attributesUsedForLocking = [[NSArray alloc] initWithArray:_attributes];
   [self invalidatePropertiesCache];
-    
+
   return YES;
 }
 
@@ -486,7 +486,7 @@ static int _compareByName(id obj1, id obj2, void * context);
   if(!([anAttribute isKindOfClass:[EOAttribute class]]
        && [self->attributesByName objectForKey:[anAttribute name]]))
     return NO;
-  
+
   return YES;
 }
 
@@ -606,12 +606,12 @@ static int _compareByName(id obj1, id obj2, void * context);
 
   array      = [plist objectForKey:@"attributes"];
   enumerator = [array objectEnumerator];
-  
+
   while ((attributePList = [enumerator nextObject])) {
     EOAttribute *attribute;
-    
+
     attribute = [EOAttribute attributeFromPropertyList:attributePList];
-    
+
     if (![entity addAttribute:attribute]) {
       NSLog(@"duplicate name for attribute '%@' in entity '%@'",
             [attribute name], [entity name]);
@@ -640,7 +640,7 @@ static int _compareByName(id obj1, id obj2, void * context);
     EORelationship *relationship
       = [EORelationship relationshipFromPropertyList:relationshipPList
                         model:_model];
-    
+
     if(![entity addRelationship:relationship]) {
       NSLog(@"duplicate name for relationship '%@' in entity '%@'",
             [relationship name], [entity name]);
@@ -664,13 +664,13 @@ static int _compareByName(id obj1, id obj2, void * context);
   enumerator           = [self->primaryKeyAttributeNames objectEnumerator];
   RELEASE(self->primaryKeyAttributes);
   self->primaryKeyAttributes = AUTORELEASE([NSMutableArray new]);
-  
+
   while ((attributeName = [enumerator nextObject])) {
     attribute = [self attributeNamed:attributeName];
-    
+
     if((attribute == nil) || ![self isValidPrimaryKeyAttribute:attribute]) {
       NSLog(@"invalid attribute name specified as primary key attribute "
-            @"'%s' in entity '%s'", 
+            @"'%s' in entity '%s'",
             [attributeName cString], [name cString]);
       [self->model errorInReading];
     }
@@ -688,7 +688,7 @@ static int _compareByName(id obj1, id obj2, void * context);
     property = [self propertyNamed:propertyName];
     if(!property || ![self isValidClassProperty:property]) {
       NSLog(@"invalid property '%s' specified as class property in "
-            @"entity '%s'", 
+            @"entity '%s'",
             [propertyName cString], [name cString]);
       [self->model errorInReading];
     }
@@ -718,7 +718,7 @@ static int _compareByName(id obj1, id obj2, void * context);
 - (id)propertyList
 {
   id propertyList;
-  
+
   propertyList = [NSMutableDictionary dictionary];
   [self encodeIntoPropertyList:propertyList];
   return propertyList;
@@ -758,7 +758,7 @@ static inline void _printIds(NSArray *a, const char *pfx, const char *indent) {
 static inline BOOL _containsObject(NSArray *a, id obj) {
   id (*objAtIdx)(NSArray*, SEL, int idx);
   register int i;
-  
+
   objAtIdx = (void *)[a methodForSelector:@selector(objectAtIndex:)];
   for (i = [a count] - 1; i >= 0; i--) {
     register id o;
@@ -775,16 +775,16 @@ static inline BOOL _containsObject(NSArray *a, id obj) {
   NSMutableArray *updName = [NSMutableArray new];
   NSMutableArray *fetAttr = [NSMutableArray new];
   NSMutableArray *fetRels = [NSMutableArray new];
-    
+
   int i;
-    
+
   [self invalidatePropertiesCache];
 
 #ifdef DEBUG
   NSAssert((updAttr != nil) && (updName != nil) &&
            (fetAttr != nil) && (fetRels != nil),
            @"allocation of array failed !");
-  
+
   NSAssert(self->primaryKeyAttributes,     @"no pkey attributes are set !");
   NSAssert(self->attributesUsedForLocking, @"no locking attrs are set !");
   NSAssert(self->classProperties,          @"no class properties are set !");
@@ -801,21 +801,21 @@ static inline BOOL _containsObject(NSArray *a, id obj) {
     lk = _containsObject(self->attributesUsedForLocking, attr);
     cp = _containsObject(self->classProperties,          attr);
     sa = YES;
-    
+
 #if 0
-    NSLog(@"attribute %@ pk=%i lk=%i cp=%i sa=%i", 
+    NSLog(@"attribute %@ pk=%i lk=%i cp=%i sa=%i",
 	  [attr name], pk, lk, cp, sa);
 #endif
-    
+
     if ((pk || lk || cp) && (!_containsObject(fetAttr, attr)))
       [fetAttr addObject:attr];
-    
+
     if ((pk || lk || cp) && (sa) && (!_containsObject(updAttr, attr))) {
       [updAttr addObject:attr];
       [updName addObject:[attr name]];
     }
   }
-    
+
   for (i = [relationships count]-1; i >= 0; i--) {
     id rel = [relationships objectAtIndex:i];
 
@@ -841,7 +841,7 @@ static inline BOOL _containsObject(NSArray *a, id obj) {
           [[(id)self->attributes mappedArrayUsingSelector:@selector(name)]
                                  componentsJoinedByString:@","]);
   }
-    
+
   RELEASE(updAttr); updAttr = nil;
   RELEASE(fetAttr); fetAttr = nil;
   RELEASE(fetRels); fetRels = nil;
@@ -856,12 +856,12 @@ static inline BOOL _containsObject(NSArray *a, id obj) {
     RELEASE(self->attributesUsedForFetch);
     RELEASE(self->relationsUsedForFetch);
     RELEASE(self->attributesNamesUsedForInsert);
-        
+
     self->attributesUsedForInsert = nil;
     self->attributesUsedForFetch = nil;
     self->relationsUsedForFetch = nil;
     self->attributesNamesUsedForInsert = nil;
-        
+
     flags.isPropertiesCacheValid = NO;
   }
 }
@@ -887,20 +887,20 @@ static inline BOOL _containsObject(NSArray *a, id obj) {
   NSMutableDictionary *dict;
   NSEnumerator        *enumerator;
   NSString            *key;
-    
+
   dict = [NSMutableDictionary dictionaryWithCapacity:[aRow count]];
   enumerator = [aRow keyEnumerator];
   while ((key = [enumerator nextObject]) != nil) {
     id old = [aRow objectForKey:key];
     id new = [[self attributeNamed:key] convertValueToModel:old];
-    
+
     if (new != nil) [dict setObject:new forKey:key];
   }
-  
+
   return [dict count] > 0 ? dict : (NSMutableDictionary *)nil;
 }
 
-static int _compareByName(id obj1, id obj2, void * context) {
+static NSComparisonResult _compareByName(id obj1, id obj2, void * context) {
   return [[(EOAttribute*)obj1 name] compare:[(EOAttribute*)obj2 name]];
 }
 
@@ -919,7 +919,7 @@ static int _compareByName(id obj1, id obj2, void * context) {
   unsigned int keyCount = [self->primaryKeyAttributeNames count];
   id           values[keyCount];
   unsigned int i;
-  
+
   for (i = 0; i < keyCount; i++) {
     NSString *attrName;
 
@@ -940,9 +940,9 @@ static int _compareByName(id obj1, id obj2, void * context) {
 - (BOOL)isPrimaryKeyValidInObject:(id)_object {
   unsigned int keyCount = [self->primaryKeyAttributeNames count];
   unsigned int i;
-  
+
   if (_object == nil) return NO;
-  
+
   for (i = 0; i < keyCount; i++) {
     if ([_object valueForKey:[self->primaryKeyAttributeNames objectAtIndex:i]]
         == nil)
@@ -958,10 +958,10 @@ static int _compareByName(id obj1, id obj2, void * context) {
   EORelationship *relship;
   NSMutableArray *result;
   EOModel        *thisModel;
-  
+
   thisModel = [self model];
   result    = nil;
-  
+
   e = [self->relationships objectEnumerator];
   while ((relship = [e nextObject]) != nil) {
     EOEntity *targetEntity;
@@ -1010,7 +1010,7 @@ static inline void _addToPropList(NSMutableDictionary *propertyList,
   _addToPropList(_plist, self->externalName,   @"externalName");
   _addToPropList(_plist, self->externalQuery,  @"externalQuery");
   _addToPropList(_plist, self->userDictionary, @"userDictionary");
-  
+
   if ((count = [self->attributes count])) {
     id attributesPList;
 
@@ -1024,7 +1024,7 @@ static inline void _addToPropList(NSMutableDictionary *propertyList,
       [attributesPList addObject:attributePList];
       RELEASE(attributePList);
     }
-    
+
     _addToPropList(_plist, attributesPList, @"attributes");
   }
 
@@ -1050,7 +1050,7 @@ static inline void _addToPropList(NSMutableDictionary *propertyList,
     for (i = 0; i < count; i++) {
       id classPropertyPList;
 
-      classPropertyPList = 
+      classPropertyPList =
         [(EOAttribute*)[self->classProperties objectAtIndex:i] name];
       [classPropertiesPList addObject:classPropertyPList];
     }
@@ -1072,13 +1072,13 @@ static inline void _addToPropList(NSMutableDictionary *propertyList,
 
   if ((count = [self->relationships count])) {
     id relationshipsPList;
-    
+
     relationshipsPList = [NSMutableArray array];
     for (i = 0; i < count; i++) {
       NSMutableDictionary *relationshipPList;
 
       relationshipPList = [NSMutableDictionary dictionary];
-      
+
       [[self->relationships objectAtIndex:i]
                             encodeIntoPropertyList:relationshipPList];
       [relationshipsPList addObject:relationshipPList];
@@ -1103,7 +1103,7 @@ static inline void _addToPropList(NSMutableDictionary *propertyList,
     s = malloc(clen + 4);
 
     [self getCString:s maxLength:clen];
-    
+
     for (cnt = cnt2 = 0; cnt < clen; cnt++, cnt2++) {
       if ((s[cnt] == '_') && (s[cnt + 1] != '\0')) {
         s[cnt2] = toupper(s[cnt + 1]);

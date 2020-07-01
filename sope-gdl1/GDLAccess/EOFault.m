@@ -1,4 +1,4 @@
-/* 
+/*
    EOAttributeOrdering.m
 
    Copyright (C) 1996 Free Software Foundation, Inc.
@@ -39,7 +39,7 @@ typedef struct {
 } *my_objc_object;
 
 #if (defined(__GNU_LIBOBJC__) && (__GNU_LIBOBJC__ >= 20100911)) || defined(APPLE_RUNTIME) || defined(__GNUSTEP_RUNTIME__)
-#  warning TODO: implement for NeXT/Apple runtime!
+/* TODO: implement for NeXT/Apple runtime! */
 #  define object_is_instance(object) (object!=nil?YES:NO)
 #  define class_get_super_class class_getSuperclass
 #  define class_get_class_method class_getClassMethod
@@ -87,7 +87,7 @@ typedef struct objc_method      *Method_t;
   /* check if fault */
   if (object_getClass(aFault) != self)
     return;
-    
+
   /* get fault instance reference count + 1 set in creation methods */
   refs = aFault->faultResolver->faultReferences;
 
@@ -95,7 +95,7 @@ typedef struct objc_method      *Method_t;
   object_setClass(aFault, [aFault->faultResolver targetClass]);
   aFault->faultResolver = [aFault->faultResolver autorelease];
   aFault->faultResolver = [aFault->faultResolver extraData];
-  
+
   /*
     set references to real instance so that
     re-implemented retain/release mechanism take control
@@ -134,7 +134,7 @@ typedef struct objc_method      *Method_t;
   // Check that argument is fault
   if (object_getClass(aFault) != self)
     return nil;
-    
+
   return [aFault->faultResolver targetClass];
 }
 
@@ -275,7 +275,7 @@ typedef struct objc_method      *Method_t;
 
 static inline void _resolveFault(EOFault *self) {
   EOFaultHandler *handler;
-  
+
   /* If in class */
   if (!object_is_instance(self)) {
     [NSException raise:@"NSInvalidArgumentException"
@@ -284,9 +284,9 @@ static inline void _resolveFault(EOFault *self) {
 
   handler = self->faultResolver;
   [handler completeInitializationOfObject:self];
-  
+
   if (object_getClass(self) == [EOFault class]) {
-    [NSException raise:@"NSInvalidArgumentException" 
+    [NSException raise:@"NSInvalidArgumentException"
 		 format:
 		   @"fault error: %@ was not cleared during fault fetching",
 		   [handler descriptionForObject:self]];
@@ -375,7 +375,7 @@ static inline void _resolveFault(EOFault *self) {
   struct objc_method *m;
 
   _resolveFault(self);
-    
+
   if ((m = class_get_instance_method(self->isa, sel)) == NULL) {
     NSString *r;
 

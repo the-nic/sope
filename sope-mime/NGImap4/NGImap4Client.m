@@ -76,6 +76,7 @@
 @interface NGImap4Client(Private)
 
 - (NSString *)_folder2ImapFolder:(NSString *)_folder;
+- (NSString *)_imapFolder2Folder:(NSString *)_folder;
 
 - (void)sendCommand:(NSString *)_command;
 - (void)sendCommand:(NSString *)_command withTag:(BOOL)_tag;
@@ -934,18 +935,16 @@ static NSMutableDictionary *namespaces;
   return [self->normer normalizeListStatusResponse:[self processCommand:cmd]];
 }
 
-/*
- result dict looks like the following
-{FolderList = {INBOX = {"/comment" = {"value.priv" = "sogo_73c_192bd57b_d8"; }; }; "Other Users/sogo2" = {"/comment" = {"value.priv" = "sogo_c0c_192bd7dc_0"; }; }; Sent = {"/comment" = {"value.priv" = "sogo_73c_192bd57b_da"; }; }; Trash = {"/comment" = {"value.priv" = "sogo_73c_192bd57b_dc"; }; }; abczzll = {"/comment" = {"value.priv" = "sogo_73c_192bd57b_d9"; }; }; "abczzll/mmabcmm" = {"/comment" = {"value.priv" = "sogo_73c_192bd57b_de"; }; }; mf1renamedd = {"/comment" = {"value.priv" = "sogo_73c_192bd57b_dd"; }; }; tfu1 = {"/comment" = {"value.priv" = "sogo_73c_192bd57b_db"; }; }; zuk = {"/comment" = {"value.priv" = "sogo_73c_192bd57b_df"; }; }; }; RawResponse = "{FolderList = ({INBOX = {\"/comment\" = {\"value.priv\" = \"sogo_73c_192bd57b_d8\"; }; }; }, {Sent = {\"/comment\" = {\"value.priv\" = \"sogo_73c_192bd57b_da\"; }; }; }, {Trash = {\"/comment\" = {\"value.priv\" = \"sogo_73c_192bd57b_dc\"; }; }; }, {abczzll = {\"/comment\" = {\"value.priv\" = \"sogo_73c_192bd57b_d9\"; }; }; }, {\"abczzll/mmabcmm\" = {\"/comment\" = {\"value.priv\" = \"sogo_73c_192bd57b_de\"; }; }; }, {mf1renamedd = {\"/comment\" = {\"value.priv\" = \"sogo_73c_192bd57b_dd\"; }; }; }, {tfu1 = {\"/comment\" = {\"value.priv\" = \"sogo_73c_192bd57b_db\"; }; }; }, {zuk = {\"/comment\" = {\"value.priv\" = \"sogo_73c_192bd57b_df\"; }; }; }, {\"Other Users/sogo2\" = {\"/comment\" = {\"value.priv\" = \"sogo_c0c_192bd7dc_0\"; }; }; }); ResponseResult = {description = Completed; result = ok; tagId = 13; }; }"; expunge = (); result = 1; }
 
- getannotation:
+//  result dict looks like the following
+// {FolderList = {INBOX = {"/comment" = {"value.priv" = "sogo_73c_192bd57b_d8"; }; }; "Other Users/sogo2" = {"/comment" = {"value.priv" = "sogo_c0c_192bd7dc_0"; }; }; Sent = {"/comment" = {"value.priv" = "sogo_73c_192bd57b_da"; }; }; Trash = {"/comment" = {"value.priv" = "sogo_73c_192bd57b_dc"; }; }; abczzll = {"/comment" = {"value.priv" = "sogo_73c_192bd57b_d9"; }; }; "abczzll/mmabcmm" = {"/comment" = {"value.priv" = "sogo_73c_192bd57b_de"; }; }; mf1renamedd = {"/comment" = {"value.priv" = "sogo_73c_192bd57b_dd"; }; }; tfu1 = {"/comment" = {"value.priv" = "sogo_73c_192bd57b_db"; }; }; zuk = {"/comment" = {"value.priv" = "sogo_73c_192bd57b_df"; }; }; }; RawResponse = "{FolderList = ({INBOX = {\"/comment\" = {\"value.priv\" = \"sogo_73c_192bd57b_d8\"; }; }; }, {Sent = {\"/comment\" = {\"value.priv\" = \"sogo_73c_192bd57b_da\"; }; }; }, {Trash = {\"/comment\" = {\"value.priv\" = \"sogo_73c_192bd57b_dc\"; }; }; }, {abczzll = {\"/comment\" = {\"value.priv\" = \"sogo_73c_192bd57b_d9\"; }; }; }, {\"abczzll/mmabcmm\" = {\"/comment\" = {\"value.priv\" = \"sogo_73c_192bd57b_de\"; }; }; }, {mf1renamedd = {\"/comment\" = {\"value.priv\" = \"sogo_73c_192bd57b_dd\"; }; }; }, {tfu1 = {\"/comment\" = {\"value.priv\" = \"sogo_73c_192bd57b_db\"; }; }; }, {zuk = {\"/comment\" = {\"value.priv\" = \"sogo_73c_192bd57b_df\"; }; }; }, {\"Other Users/sogo2\" = {\"/comment\" = {\"value.priv\" = \"sogo_c0c_192bd7dc_0\"; }; }; }); ResponseResult = {description = Completed; result = ok; tagId = 13; }; }"; expunge = (); result = 1; }
 
- result = [client annotation: folderName entryName: @"/comment" attributeName: @"value.priv"];
- result = [client annotation: folderName entryName: @"/comment" attributeName: @"value"];
- result = [client annotation: folderName entryName: @"/*" attributeName: @"value"];
- result = [client annotation: @"" entryName: @"/*" attributeName: @"value"];
+//  getannotation:
 
-*/
+//  result = [client annotation: folderName entryName: @"/comment" attributeName: @"value.priv"];
+//  result = [client annotation: folderName entryName: @"/comment" attributeName: @"value"];
+//  result = [client annotation: folderName entryName: @"/*" attributeName: @"value"];
+//  result = [client annotation: @"" entryName: @"/*" attributeName: @"value"];
 - (NSDictionary *)annotation:(NSString *)_folder entryName:(NSString *)_entry attributeName:(NSString *)_attribute {
   NSString *cmd;
   NGHashMap *_map;

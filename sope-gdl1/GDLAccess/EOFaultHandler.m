@@ -1,4 +1,4 @@
-/* 
+/*
    EOAdaptorChannel.m
 
    Copyright (C) 1996 Free Software Foundation, Inc.
@@ -88,7 +88,7 @@ typedef struct objc_method      *Method_t;
     ? [self targetClass]
     : (*(Class *)_fault);
 #else
-#  warning TODO: add complete implementation for Apple/NeXT runtime!
+/* TODO: add complete implementation for Apple/NeXT runtime! */
   return [self targetClass];
 #endif
 }
@@ -120,7 +120,7 @@ typedef struct objc_method      *Method_t;
 #if GNU_RUNTIME && !defined(__GNUSTEP_RUNTIME__) && !(__GNU_LIBOBJC__ >= 20100911)
   struct objc_protocol_list* protos;
   int i;
-  
+
   class = object_is_instance(_fault) ? [self targetClass] : (Class)_fault;
   for (protos = class->protocols; protos; protos = protos->next) {
     for (i = 0; i < protos->count; i++) {
@@ -129,7 +129,7 @@ typedef struct objc_method      *Method_t;
     }
   }
 #else
-#  warning TODO: implement on NeXT/Apple runtime!
+/*  TODO: implement on NeXT/Apple runtime! */
   class = [self targetClass];
 #endif
 
@@ -191,17 +191,17 @@ typedef struct objc_method      *Method_t;
     mth = class_get_instance_method(*(Class *)_fault, _selector);
     if (mth) types = mth->method_types;
   }
-  
+
   /* then check in target class methods */
-  
+
   if (types == NULL) {
     // lookup method for selector
     struct objc_method *mth;
     mth = class_get_instance_method([self targetClass], _selector);
     if (mth) types = mth->method_types;
   }
-#endif 
- 
+#endif
+
 #if GNU_RUNTIME
   // GNU runtime selectors may be typed, a lookup may not be necessary
   if (types == NULL)
@@ -209,7 +209,7 @@ typedef struct objc_method      *Method_t;
 #endif
   if (types == NULL)
     return nil;
-  
+
   return [NSMethodSignature signatureWithObjCTypes:types];
 #endif
 }

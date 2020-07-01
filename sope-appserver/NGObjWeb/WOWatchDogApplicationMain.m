@@ -558,7 +558,7 @@ typedef enum {
   signal(SIGINT, SIG_DFL);
   signal(SIGTERM, SIG_DFL);
   signal(SIGPIPE, SIG_DFL);
-  
+
   [loopTimer invalidate];
   loopTimer = nil;
   runLoop = [NSRunLoop currentRunLoop];
@@ -1017,8 +1017,12 @@ int WOWatchDogApplicationMain
                         [processInfo processName],
                         [processInfo processName]];
   if (![logFile isEqualToString: @"-"]) {
-    freopen([logFile cString], "a", stdout);
-    freopen([logFile cString], "a", stderr);
+    if (freopen([logFile cString], "a", stdout) == NULL) {
+        fprintf(stderr, "Unable to redirect stdout");
+    }
+    if (freopen([logFile cString], "a", stderr) == NULL) {
+        fprintf(stderr, "Unable to redirect stderr");
+    }
   }
   if ([ud boolForKey: @"WONoDetach"])
     childPid = 0;
@@ -1076,7 +1080,7 @@ int WOWatchDogApplicationMainWithServerDefaults
 {
   NSAutoreleasePool *pool;
   Class defClass;
-  
+
   pool = [[NSAutoreleasePool alloc] init];
 #if LIB_FOUNDATION_LIBRARY || defined(GS_PASS_ARGUMENTS)
   {
@@ -1085,23 +1089,23 @@ int WOWatchDogApplicationMainWithServerDefaults
                                environment:(void*)environ];
   }
 #endif
-  
+
   if ((defClass = NSClassFromString(@"WOServerDefaults")) != nil) {
     NSUserDefaults *ud;
-    
+
     ud = [NSUserDefaults standardUserDefaults];
     [defClass hackInServerDefaults:ud
               withAppDomainPath:appDomainPath
               globalDomainPath:globalDomainPath];
 
-#if 0    
+#if 0
     if (((sd == nil) || (sd == ud)) && (appDomainPath != nil)) {
       NSLog(@"Note: not using server defaults: '%@' "
             @"(not supported on this Foundation)", appDomainPath);
     }
 #endif
   }
- 
+
   [pool release];
 
   return WOWatchDogApplicationMain(appName, argc, argv);

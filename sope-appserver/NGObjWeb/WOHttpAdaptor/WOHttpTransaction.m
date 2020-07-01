@@ -89,7 +89,7 @@ static NSDictionary *standardCapitalizedHeaders = nil;
   doCore = [[ud objectForKey:@"WOCoreOnHTTPAdaptorException"] boolValue]?1:0;
   capitalizeHeaders = [[ud objectForKey:@"WOHTTPAdaptorCapitalizeHeaders"] boolValue];
   WOHttpAdaptor_LogStream = [ud boolForKey:@"WOHttpAdaptor_LogStream"];
-  
+
   adLogPath = [[ud stringForKey:@"WOAdaptorLogPath"] copy];
   if (adLogPath == nil) adLogPath = @"";
 
@@ -140,7 +140,7 @@ static NSDictionary *standardCapitalizedHeaders = nil;
             @"resetting while async response pending ... (%@)",
             self->asyncResponseToken];
     abort();
-    
+
     [[self notificationCenter] removeObserver:self];
   }
   [self->asyncResponseToken release]; self->asyncResponseToken = nil;
@@ -171,21 +171,21 @@ static NSDictionary *standardCapitalizedHeaders = nil;
       gettimeofday(&tv, NULL);
       self->t = (((double)tv.tv_sec) + ((double)tv.tv_usec)
                  / 1000000.0) - self->t;
-      [perfLogger logWithFormat:@"processing of request took %4.3fs.", 
+      [perfLogger logWithFormat:@"processing of request took %4.3fs.",
 	                  self->t < 0.0 ? -self->t : self->t];
   }
 }
 
 - (BOOL)_setupStreamsForSocket {
   if ([self optionLogStream]) {
-    self->log = [(WORecordRequestStream *)[WORecordRequestStream alloc] 
+    self->log = [(WORecordRequestStream *)[WORecordRequestStream alloc]
       initWithSource:self->socket];
-    self->io  = [(NGBufferedStream *)[NGBufferedStream alloc] 
+    self->io  = [(NGBufferedStream *)[NGBufferedStream alloc]
       initWithSource:self->log];
   }
   else {
     self->log = nil;
-    self->io = [(NGBufferedStream *)[NGBufferedStream alloc] 
+    self->io = [(NGBufferedStream *)[NGBufferedStream alloc]
       initWithSource:self->socket];
   }
   return self->io != nil ? YES : NO;
@@ -196,33 +196,33 @@ static int logCounter = 0;
 - (NSString *)currentRecordingPath:(NSString *)_suffix {
   static NSString *s = nil;
   NSString *p;
-  
+
   if (s == nil) {
     s = [[self->application recordingPath] copy];
     if (s == nil) s = @"";
   }
   if ([s length] == 0) return nil;
-  
+
   p = [NSString stringWithFormat:@"%04i-%@", logCounter, _suffix];
   return [s stringByAppendingPathComponent:p];
 }
 
 - (void)logRequestData:(NSData *)_data {
   NSString *logPath = nil;
-  
+
   if (![self optionLogStream]) return;
   logCounter++;
-  
+
   if ([adLogPath length] > 0)
     logPath = adLogPath;
   else if ([logPath length] == 0)
     logPath = [self currentRecordingPath:@"request"];
-  
+
   if ([logPath length] == 0)
     logPath = @"/tmp/woadaptor.log";
-  
+
   [_data writeToFile:logPath atomically:NO];
-  
+
 #if 1
   NSLog(@"request is\n");
   fflush(stderr);
@@ -238,12 +238,12 @@ static int logCounter = 0;
   data:(NSData *)_data
 {
   NSString *logPath;
-  
+
   if (_data == nil) return;
-  
+
   if ((int)[_response status] == (int)WOAsyncResponseStatus)
     return;
-  
+
 #if 1
   NSLog(@"response is\n");
   fflush(stderr);
@@ -252,10 +252,10 @@ static int logCounter = 0;
   fprintf(stderr,"\n");
   fflush(stderr);
 #endif
-  
+
   if ((logPath = [self currentRecordingPath:@"response"]) == nil)
     return;
-  
+
   [_data writeToFile:logPath atomically:NO];
 }
 
@@ -263,10 +263,10 @@ static int logCounter = 0;
   /* apply some adaptor headers in direct-connect mode  */
 
   if (woRequest == nil) return;
-  
+
   if ([woRequest headerForKey:@"x-webobjects-server-url"] == nil) {
     NSString *tmp;
-    
+
     if ((tmp = [woRequest headerForKey:@"host"])) {
       if ([tmp hasSuffix:@":0"] && ([tmp length] > 2)) // TODO: bad bad bad
 	tmp = [tmp substringToIndex:([tmp length] - 2)];
@@ -276,7 +276,7 @@ static int logCounter = 0;
   }
   if ([woRequest headerForKey:@"x-webobjects-server-name"] == nil) {
     NSString *tmp;
-    
+
     if ((tmp = [woRequest headerForKey:@"host"])) {
       NSRange r = [tmp rangeOfString:@":"];
       if (r.length > 0) tmp = [tmp substringToIndex:r.location];
@@ -285,7 +285,7 @@ static int logCounter = 0;
   }
   if ([[woRequest headerForKey:@"x-webobjects-server-port"] intValue] < 1) {
     id tmp;
-    
+
     if ((tmp = [woRequest headerForKey:@"host"])) {
       NSRange r = [tmp rangeOfString:@":"];
       if (r.length > 0) tmp = [tmp substringFromIndex:r.location + r.length];
@@ -293,13 +293,13 @@ static int logCounter = 0;
       [woRequest setHeader:tmp forKey:@"x-webobjects-server-port"];
     }
   }
-  
+
   if ([woRequest headerForKey:@"x-webobjects-remote-host"] == nil) {
     id<NGSocketAddress> remote = nil;
     NSString *remoteHost = nil;
 
     /* Use de facto standard headers if remote-host is not set
-     * before falling back to the remote end of the socket 
+     * before falling back to the remote end of the socket
      */
      if ([woRequest headerForKey:@"x-forward"]) {
        remoteHost = [woRequest headerForKey:@"x-forward"];
@@ -309,7 +309,7 @@ static int logCounter = 0;
      }
      else {
        remote = [self->socket remoteAddress];
-    
+
        if ([remote isKindOfClass:[NGInternetSocketAddress class]])
          remoteHost = [(NGInternetSocketAddress *)remote hostName];
 #if !defined(__MINGW32__)
@@ -321,10 +321,10 @@ static int logCounter = 0;
     if ([remoteHost length] > 0)
       [woRequest setHeader:remoteHost forKey:@"x-webobjects-remote-host"];
   }
-        
+
   if ([woRequest headerForKey:@"x-webobjects-remote-user"] == nil) {
     id auth;
-          
+
     auth = [[request valuesOfHeaderFieldWithName:@"authorization"]
                      nextObject];
     if (auth) {
@@ -332,11 +332,11 @@ static int logCounter = 0;
         auth =
           [NGHttpCredentials credentialsWithString:[auth stringValue]];
       }
-       
+
       if ([auth userName])
         [woRequest setHeader:[auth userName]
                       forKey:@"x-webobjects-remote-user"];
-      
+
       if ([auth scheme])
         [woRequest setHeader:[auth scheme]
                       forKey:@"x-webobjects-auth-type"];
@@ -352,9 +352,9 @@ static int logCounter = 0;
   mr = [mr initWithRequest:self->woRequest];
   [mr setHTTPVersion:[woRequest httpVersion]];
   [mr setStatus:500];
-  
+
   accept = [woRequest headerForKey:@"accept"];
-  
+
   if ([accept rangeOfString:@"text/html"].length > 0) {
     const char *txt = "could not perform request !<br />";
     [mr setHeader:@"text/html" forKey:@"content-type"];
@@ -368,13 +368,13 @@ static int logCounter = 0;
 
   if (self->woRequest)
     [self warnWithFormat:@"woRequest already set ???"];
-  
+
   if ([self->application shouldUseSimpleHTTPParserForTransaction:self]) {
     WOSimpleHTTPParser *parser;
-    
+
     parser = [[WOSimpleHTTPParser alloc] initWithStream:self->io];
     self->woRequest = [[parser parseRequest] retain];
-    
+
     if (self->woRequest == nil) {
       ASSIGN(self->lastException, [parser lastException]);
       [self errorWithFormat:@"failed to parse request: %@", self->lastException];
@@ -384,7 +384,7 @@ static int logCounter = 0;
   else {
     if ((request = [self parseRequestFromStream:self->io]) == nil)
       return NO;
-    
+
 #if DEBUG
     NSAssert([request isKindOfClass:[NGHttpRequest class]],
 	     @"invalid request class");
@@ -393,7 +393,7 @@ static int logCounter = 0;
   }
   [self logRequestData:[log readLog]];
   [log resetReadLog];
-  
+
   if ([self->woRequest isCodeRedAttack]) {
     [self logWithFormat:
             @"WOHttpAdaptor: detected 'Code Red' request: '%@', blocking.",
@@ -401,12 +401,12 @@ static int logCounter = 0;
     ASSIGN(self->woRequest, (id)nil);
     return NO;
   }
-  
+
   [self->woRequest takeStartDate:self->startDate];
-  
+
   /* apply some adaptor headers in direct-connect mode  */
   [self applyAdaptorHeadersWithHttpRequest:request];
-  
+
   if (perfLogger) {
     NSTimeInterval rt;
     self->requestFinishTime = [[NSDate date] timeIntervalSince1970];
@@ -414,7 +414,7 @@ static int logCounter = 0;
     [perfLogger logWithFormat:@"decoding of request took %4.3fs.",
                   rt < 0.0 ? -1.0 : rt];
   }
-  
+
   return self->woRequest ? YES : NO;
 }
 
@@ -426,12 +426,12 @@ static int logCounter = 0;
     [perfLogger logWithFormat:@"dispatch of request took %4.3fs.",
                   rt < 0.0 ? -1.0 : rt];
   }
-  
+
   if (self->woResponse != nil) {
     [self deliverResponse:self->woResponse
           toRequest:self->woRequest
           onStream:self->io];
-    
+
     if (perfLogger) {
       NSTimeInterval rt;
       rt = [[NSDate date] timeIntervalSince1970] - dispatchFinishTime;
@@ -442,19 +442,19 @@ static int logCounter = 0;
   else if (self->woRequest != nil) {
     [self errorWithFormat:@"got no response for request %@ ..",
             self->woRequest];
-      
+
     self->woResponse = [[self generateMissingResponse] retain];
-    
+
     [self deliverResponse:self->woResponse
           toRequest:self->woRequest
           onStream:self->io];
   }
-  
+
   if (![self->io flush]) {
     ASSIGN(self->lastException, [self->io lastException]);
     return NO;
   }
-  
+
   if ([self closeConnectionAfterDelivery]) {
     [self debugWithFormat:@"close connection: %@", self->io];
     if (![self->io close]) {
@@ -465,7 +465,7 @@ static int logCounter = 0;
   }
   else
     [self debugWithFormat:@"not closing connection ..."];
-  
+
   return YES;
 }
 
@@ -475,7 +475,7 @@ static int logCounter = 0;
 
 - (void)responseReady:(NSNotification *)_notification {
   WOResponse *response;
-  
+
   if ([self->asyncResponseToken length] == 0) {
     [self errorWithFormat:
             @"got response ready notification (%@), "
@@ -490,29 +490,29 @@ static int logCounter = 0;
             _notification, self->asyncResponseToken, [_notification object]];
     return;
   }
-  
+
   /* OK, everything seems to be correct, so we received a response .. */
-  
+
   [[self retain] autorelease];
   [pendingTransactions removeObjectForKey:self->asyncResponseToken];
-  
+
   response = [[_notification userInfo] objectForKey:WOAsyncResponse];
   ASSIGN(self->woResponse, response);
-  
+
   [[self notificationCenter] removeObserver:self];
   [self->asyncResponseToken release]; self->asyncResponseToken = nil;
-  
+
   /* send response */
-  
+
   [self debugWithFormat:@"sending async response: %@", self->woResponse];
   [self _sendResponse];
-  
+
   [self debugWithFormat:@"logging async response: %@", self->woResponse];
   [self logResponse:self->woResponse
         toRequest:self->woRequest
         data:[log writeLog]];
   [log resetWriteLog];
-  
+
   [self finish];
   [self reset];
 
@@ -522,17 +522,17 @@ static int logCounter = 0;
 
 - (BOOL)_enterAsyncMode:(WOResponse *)_response {
   NSString *token;
-  
+
   [self debugWithFormat:@"enter async mode ..."];
-  
+
   if (pendingTransactions == nil)
     pendingTransactions = [[NSMutableDictionary alloc] initWithCapacity:16];
-  
+
   [self debugWithFormat:@"PENDING: %@", pendingTransactions];
-  
+
   NSAssert1((int)[_response status] == (int)WOAsyncResponseStatus,
             @"passed in an invalid response %@ ...", _response);
-  
+
   token = [[_response userInfo] objectForKey:WOAsyncResponseTokenKey];
   if ([token length] == 0) {
     [self errorWithFormat:@"missing async response token in response %@",
@@ -542,31 +542,31 @@ static int logCounter = 0;
 
   [self debugWithFormat:@"using token: %@", token];
   ASSIGN(self->asyncResponseToken, token);
-  
+
   [pendingTransactions setObject:self forKey:self->asyncResponseToken];
-  
+
   [[self notificationCenter]
          addObserver:self selector:@selector(responseReady:)
          name:WOAsyncResponseReadyNotificationName
          object:self->asyncResponseToken];
-  
+
   return YES;
 }
 
 - (BOOL)_run {
   if (![self _setupStreamsForSocket])
     return NO;
-  
+
   if (![self _readRequest])
     return NO;
-  
+
   /* dispatch request */
-  
+
   if (self->woRequest)
     self->woResponse = [[self->application dispatchRequest:woRequest] retain];
   else
     self->woResponse = nil;
-  
+
   if (self->woResponse) {
     if ((int)[self->woResponse status] == (int)WOAsyncResponseStatus) {
       /* switch to async mode ... */
@@ -578,16 +578,16 @@ static int logCounter = 0;
       }
     }
   }
-  
+
   /* send response */
-  
+
   [self _sendResponse];
-  
+
   [self logResponse:self->woResponse
         toRequest:self->woRequest
         data:[self->log writeLog]];
   [self->log resetWriteLog];
-    
+
   [self->io  release]; self->io  = nil;
   [self->log release]; self->log = nil;
   return YES;
@@ -600,9 +600,9 @@ static int logCounter = 0;
 - (BOOL)_catchedException:(NSException *)localException {
   if ([localException isKindOfClass:[NGSocketShutdownException class]])
     return YES;
-  
+
   ASSIGN(self->lastException, localException);
-  
+
 #if DEBUG
   if (doCore) abort();
 #endif
@@ -611,10 +611,10 @@ static int logCounter = 0;
 
 - (BOOL)run {
   BOOL ok = YES;
-  
+
   [self reset];
   [self start];
-  
+
   NS_DURING {
     if (![self _run])
       ok = NO;
@@ -622,12 +622,12 @@ static int logCounter = 0;
   NS_HANDLER
     ok = [self _catchedException:localException];
   NS_ENDHANDLER;
-  
+
   if (self->asyncResponseToken == nil) {
     [self finish];
     [self reset];
   }
-  
+
   return ok;
 }
 
@@ -635,13 +635,13 @@ static int logCounter = 0;
   NGHttpMessageParser *parser = nil;
   volatile id request = nil;
   NSString *format = @"parsing of request failed with exception: %@";
-  
+
   NS_DURING {
     *(&parser) = [[NGHttpMessageParser alloc] init];
     [parser setDelegate:self];
-    
+
     request = [parser parseRequestFromStream:_in];
-    
+
     [parser release]; parser = nil;
   }
   NS_HANDLER {
@@ -656,16 +656,16 @@ static int logCounter = 0;
 
 - (const unsigned char *)_reasonForStatus:(unsigned int)_status {
   const char *reason;
-  
+
   switch (_status) {
     case 200: reason = "OK";           break;
     case 201: reason = "Created";      break;
     case 204: reason = "No Content";   break;
     case 207: reason = "Multi-Status"; break;
-    
+
     case 302: reason = "Found";        break;
     case 304: reason = "Not Modified"; break;
-      
+
     case 401: reason = "Authorization Required"; break;
     case 402: reason = "Payment Required";       break;
     case 403: reason = "Forbidden";              break;
@@ -675,9 +675,9 @@ static int logCounter = 0;
     case 412: reason = "Precondition Failed";    break;
     case 415: reason = "Unsupported Media Type"; break;
     case 424: reason = "Failed Dependency";      break;
-    
+
     case 507: reason = "Insufficient Storage";   break;
-    
+
     default:
       if (_status < 300)
         reason = "Request Was Successful";
@@ -722,18 +722,18 @@ static int logCounter = 0;
   [self _httpValidateResponse:_response];
 
   out = [(NGCTextStream *)[NGCTextStream alloc] initWithSource:_out];
-  
+
   NS_DURING {
     unsigned char buf[1024];
     NSString *t1;
-    id   body;
+    id   body = nil;
     BOOL doZip;
     BOOL isok = YES;
     int length;
     NSFileHandle *contentFile;
-    
+
     doZip = [_response shouldZipResponseToRequest:_request];
-    
+
     /* response line */
     if (isok) {
       unsigned int slen, rlen;
@@ -763,12 +763,12 @@ static int logCounter = 0;
       doZip = NO;
     } else {
       /* zip */
-      body = (doZip) 
+      body = (doZip)
         ? [_response zipResponse]
         : [_response content];
-    
+
       /* add content length header */
-    
+
       if ((length = [body length]) == 0
           && ![[_response headerForKey: @"content-type"] hasPrefix:@"text/plain"]
           && ![[_response headerForKey: @"content-type"] hasPrefix:@"application/vnd.ms-sync.wbxml"]) {
@@ -780,7 +780,7 @@ static int logCounter = 0;
     t1 = [[NSString alloc] initWithCString:(char *)buf];
     [_response setHeader:t1 forKey:@"content-length"];
     [t1 release]; t1 = nil;
-    
+
     /* write headers */
     if (isok) {
       /* collect in string to reduce string IO */
@@ -789,31 +789,31 @@ static int logCounter = 0;
       NSMutableString *header;
       BOOL hasConnectionHeader;
       IMP  addStr;
-      
+
 #if HEAVY_DEBUG
       NSLog(@"DELIVER: %@", _response);
 #endif
-    
+
       hasConnectionHeader = NO;
       header = [[NSMutableString alloc] initWithCapacity:4096];
       addStr = [header methodForSelector:@selector(appendString:)];
       fields = [[_response headerKeys] objectEnumerator];
-      
+
       while ((fieldName = [fields nextObject]) && isok) {
         NSEnumerator *values;
         NSString *value;
-	
+
 	if (!hasConnectionHeader) {
 	  if ([fieldName isEqualToString:@"connection"])
 	    hasConnectionHeader = YES;
 	}
-	
+
 #if HEAVY_DEBUG
 	NSLog(@"  FIELD: %@", fieldName);
 #endif
-	
+
         values = [[_response headersForKey:fieldName] objectEnumerator];
-	
+
         while ((value = [values nextObject]) && isok) {
 #if HEAVY_DEBUG
 	  NSLog(@"    VAL: %@", value);
@@ -827,7 +827,7 @@ static int logCounter = 0;
               addStr(header, @selector(appendString:),
                      capitalizeHeaders ? [fieldName asCapitalizedHeader] : fieldName);
             }
-          
+
           addStr(header, @selector(appendString:), @": ");
           addStr(header, @selector(appendString:), value);
           addStr(header, @selector(appendString:), @"\r\n");
@@ -855,19 +855,19 @@ static int logCounter = 0;
       NSLog(@"NOT OK TO DELIVER HEADERS ...");
     }
 #endif
-    
+
     /* write cookie headers */
     if (isok) {
       NSEnumerator *cookies;
       WOCookie     *cookie;
-      
+
       cookies = [[_response cookies] objectEnumerator];
       while ((cookie = [cookies nextObject]) && isok) {
         unsigned clen;
-        
+
         t1   = [cookie stringValue];
         clen = [t1 cStringLength];
-        
+
         if (isok) isok = [_out safeWriteBytes:"set-cookie: " count:12];
         if (isok) {
           if (clen > 1000)
@@ -880,12 +880,12 @@ static int logCounter = 0;
         if (isok) isok = [_out safeWriteBytes:"\r\n" count:2];
       }
     }
-    
+
     if (isok) isok = [_out safeWriteBytes:"\r\n" count:2];
     if (isok) isok = [out flush];
-    
+
     /* write body */
-    
+
     if (![[_request method] isEqualToString:@"HEAD"] && isok) {
       if (contentFile != nil && isok) {
         char buffer[8192];
@@ -902,7 +902,7 @@ static int logCounter = 0;
         if (![body isKindOfClass:[NSData class]]) {
           if (![body isKindOfClass:[NSString class]])
             body = [body description];
-          
+
           body = [body dataUsingEncoding:[_response contentEncoding]
                        allowLossyConversion:NO];
         }
@@ -910,10 +910,10 @@ static int logCounter = 0;
         if (isok) isok = [_out flush];
       }
     }
-    
+
     if (!isok) {
       NSException *e;
-      
+
       e = [out lastException];
       if ([e isKindOfClass:[NGSocketShutdownException class]]) {
         [self errorWithFormat:disconnectError,
@@ -940,7 +940,7 @@ static int logCounter = 0;
     }
   }
   NS_ENDHANDLER;
-  
+
   [out release]; out = nil; // the buffer will be flushed ..
 }
 
@@ -958,7 +958,7 @@ static __inline__ const char *monthAbbr(int m) {
   toRequest:(WORequest *)_request
   connection:(id<NGActiveSocket>)_connection
 {
-  /* 
+  /*
     NOTE: *obsoleted profiling information*
     TODO: update profiling info! (left the old one for comparison)
     Profiling: this method takes 0.95% of -run if the output is piped to
@@ -975,7 +975,7 @@ static __inline__ const char *monthAbbr(int m) {
   lstartDate = [_request startDate];
   startStats = [_request startStatistics];
   zippedLen  = [[_response userInfo] objectForKey:@"WOResponseZippedLength"];
-  
+
   // host and date
   if ((remoteHost = [_request headerForKey:@"x-webobjects-remote-host"]))
     ;
@@ -993,7 +993,7 @@ static __inline__ const char *monthAbbr(int m) {
       remoteHost = @"local";
 #endif
   }
-  
+
   // this is supposed to be in GMT ! TODO: explicitly set GMT
   now = [NSCalendarDate calendarDate];
 
@@ -1008,25 +1008,25 @@ static __inline__ const char *monthAbbr(int m) {
   [buf appendString:@" "];
   [buf appendString:[_request httpVersion]];
   [buf appendString:@"\" "];
-  [buf appendFormat:@"%i %i",  
+  [buf appendFormat:@"%i %i",
          [_response status],
          (int)[[_response content] length]];
   if (doExtLog)
     [buf appendFormat:@"/%i", (int)[[_request content] length]];
-  
+
   /* append duration */
   if (lstartDate != nil)
     [buf appendFormat:@" %.3f", [now timeIntervalSinceDate:lstartDate]];
   else
     [buf appendString:@" -"];
-  
+
   /* append zip level */
   if (zippedLen) {
     double p;
     double unzippedLen;
-    
-    unzippedLen = 
-      [[[_response userInfo] objectForKey:@"WOResponseUnzippedLength"] 
+
+    unzippedLen =
+      [[[_response userInfo] objectForKey:@"WOResponseUnzippedLength"]
 	           unsignedIntValue];
     [buf appendFormat:@" %d", (unsigned int)unzippedLen];
 
@@ -1044,22 +1044,22 @@ static __inline__ const char *monthAbbr(int m) {
     /* content was not zipped */
     [buf appendString:@" - -"];
   }
-  
+
   /* append statistics */
-  
+
   if (startStats) {
     static NSProcessInfo *pi = nil;
     NSDictionary *currentStats;
-    
+
     if (pi == nil) pi = [[NSProcessInfo processInfo] retain];
-    
+
     if ((currentStats = [pi procStatDictionary])) {
       int old, new, diff;
-      
+
       old = [[startStats   objectForKey:@"rss"] intValue];
       new = [[currentStats objectForKey:@"rss"] intValue];
       diff = new - old; /* number of pages (4KB on ix86 ..) */
-      
+
       diff *= 4; /* in KB */
       if (diff == 0)
         [buf appendString:@" 0"];
